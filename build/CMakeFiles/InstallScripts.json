@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/s654081/Desktop/big-raster/build/cmake_install.cmake",
+		"C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/cmake_install.cmake",
+		"C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/src/cmake_install.cmake",
+		"C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/docs/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
