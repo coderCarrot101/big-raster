@@ -6,18 +6,6 @@
 #include <cmath>
 #include <iomanip> 
 
-/* TODO: ADD THIS
-const char *fragmentShaderSource =
-#version 330 core
-out vec4 FragColor;
-  
-uniform vec4 ourColor; // we set this variable in the OpenGL code.
-
-void main()
-{
-    FragColor = ourColor;
-}
-*/
 
 const char *vertexShaderSource =
 "#version 330 core\n"
@@ -35,11 +23,11 @@ const char *fragmentShaderSource =
 "#version 330 core\n"
 "out vec4 FragColor;\n"
 "\n"
-"in vec4 vertexColor; // the input variable from the vertex shader (same name and same type)\n"
+"uniform vec4 ourColor; // we set this variable in the OpenGL code.\n"
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = vertexColor;\n"
+"    FragColor = ourColor;\n"
 "}\n\0";
 
 
@@ -175,22 +163,29 @@ float timeValue = 0;
 float greenValue = 0;
 
 void render_loop(void) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
     //default using glPolygonMode(GL_FRONT_AND_BACK, ***GL_FILL).
     while(!glfwWindowShouldClose(window)) {
         glfwSwapBuffers(window);
         glfwPollEvents();    
         
-        
+        // clear the colorbuffer
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(shaderProgram);
+
         timeValue = glfwGetTime();
         greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+
         
-        glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
 
-        glClearColor(0.529f, 0.808f, 0.922f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
+        
 
         //draws from indices
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
