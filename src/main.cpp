@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <cmath>
+#include <iomanip> 
 
 /* TODO: ADD THIS
 const char *fragmentShaderSource =
@@ -16,7 +18,7 @@ void main()
     FragColor = ourColor;
 }
 */
-/*
+
 const char *vertexShaderSource =
 "#version 330 core\n"
 "layout (location = 0) in vec3 aPos; // the position variable has attribute position 0\n"
@@ -39,7 +41,7 @@ const char *fragmentShaderSource =
 "{\n"
 "    FragColor = vertexColor;\n"
 "}\n\0";
-*/
+
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
