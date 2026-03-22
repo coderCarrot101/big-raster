@@ -158,14 +158,14 @@ void initialize(void) {
     glViewport(0, 0, WIDTH, HEIGHT);
     glfwSetFramebufferSizeCallback(window, window_resize_adjust_viewport); 
 }
-
+//test
 float timeValue = 0;
 float greenValue = 0;
 
 void render_loop(void) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
-    //default using glPolygonMode(GL_FRONT_AND_BACK, ***GL_FILL).
+    //default using glPolygonMode(GL_FRONT_AND_BACK, ***GL_FILL OR GL_LINE).
     while(!glfwWindowShouldClose(window)) {
         glfwSwapBuffers(window);
         glfwPollEvents();    
