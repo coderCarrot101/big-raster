@@ -5,31 +5,9 @@
 #include <iostream>
 #include <cmath>
 #include <iomanip> 
-
-
-const char *vertexShaderSource =
-"#version 330 core\n"
-"layout (location = 0) in vec3 aPos; // the position variable has attribute position 0\n"
-"\n"
-"out vec4 vertexColor; // specify a color output to the fragment shader\n"
-"\n"
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(aPos, 1.0); // see how we directly give a vec3 to vec4's constructor\n"
-"    vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // set the output variable to a dark-red color\n"
-"}\n\0";
-
-const char *fragmentShaderSource =
-"#version 330 core\n"
-"out vec4 FragColor;\n"
-"\n"
-"uniform vec4 ourColor; // we set this variable in the OpenGL code.\n"
-"\n"
-"void main()\n"
-"{\n"
-"    FragColor = ourColor;\n"
-"}\n\0";
-
+#include <fstream>
+#include <sstream>
+#include <string>
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
@@ -46,14 +24,15 @@ void window_resize_adjust_viewport(GLFWwindow* window, int width, int height);
 void initialize(void);
 void render_loop(void);
 void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader);
+std::string load_file(const char* path);
 
 
 float vertices[] = {
-     0.5f,  0.5f, 0.0f,  // top right
-     0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
-};
+    // positions         // colors
+     0.1f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+     0.0f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+};    
 
 unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
@@ -61,8 +40,10 @@ unsigned int indices[] = {  // note that we start from 0!
 };  
 
 int main() {
-    initialize();
 
+    initialize();
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);  
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     //might wanna stwich static to dynamic later, if we change graphics at run time
@@ -71,13 +52,20 @@ int main() {
     glEnableVertexAttribArray(0);  
 
     //^ buffers | v vertex array objects
-
-    glGenVertexArrays(1, &VAO);  
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);  
+    /*
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
+    */
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -92,18 +80,35 @@ int main() {
     return 0;
 }
 
+std::string load_file(const char* path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << path << std::endl;
+        return "";
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
 void window_resize_adjust_viewport(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, WIDTH, HEIGHT);
 }
 
 //compile fragment and vertex shaders
 void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader) {
+    std::string fragSource = load_file("src/shaders/fragment.glsl");
+    std::string vertSource = load_file("src/shaders/vertex.glsl");
+
+    const char* fragPtr = fragSource.c_str();
+    const char* vertPtr = vertSource.c_str();
+    
     int tempFlag = 0;
     char infoLog[512];
 
     //create and complie vertex shader
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glShaderSource(vertexShader, 1, &vertPtr, NULL);
     glCompileShader(vertexShader);
 
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &tempFlag);
@@ -115,7 +120,7 @@ void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader) {
 
     //create and complie fragment shader
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShader, 1, &fragPtr, NULL);
     glCompileShader(fragmentShader);
 
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &tempFlag);
@@ -130,7 +135,7 @@ void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader) {
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 
-    
+    glUseProgram(shaderProgram);
 }
 
 
@@ -163,37 +168,37 @@ float timeValue = 0;
 float greenValue = 0;
 
 void render_loop(void) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     
     //default using glPolygonMode(GL_FRONT_AND_BACK, ***GL_FILL OR GL_LINE).
     while(!glfwWindowShouldClose(window)) {
-        glfwSwapBuffers(window);
-        glfwPollEvents();    
+        
         
         // clear the colorbuffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        
 
-        timeValue = glfwGetTime();
-        greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+        //timeValue = glfwGetTime();
+        //greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+        //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
-
+            
         
         glBindVertexArray(VAO);
-
-        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glfwSwapBuffers(window);
+        glfwPollEvents();    
 
         //draws from indices
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glBindVertexArray(0);
 
         // 3 is the number of verticies, possibly add more per triangle (like 3 * triangleNum)
-        //antiquated, draws fro vertices
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
+        //antiquated, draws from vertices
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
     }
     glfwTerminate();
 
