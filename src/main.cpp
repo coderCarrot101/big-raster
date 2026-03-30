@@ -9,6 +9,9 @@
 #include <sstream>
 #include <string>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
@@ -28,16 +31,27 @@ std::string load_file(const char* path);
 
 
 float vertices[] = {
-    // positions         // colors
+    // First triangle
      0.1f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
     -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-     0.0f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
-};    
+     0.0f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f,   // top 
 
-unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
-};  
+    // Second triangle
+     0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
+     0.0f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
+     0.25f, 0.5f, 0.0f,  1.0f, 0.0f, 1.0f    // top
+};
+
+// unsigned int indices[] = {  // note that we start from 0!
+//     0, 1, 3,   // first triangle
+//     1, 2, 3    // second triangle
+// };  
+
+float texCoords[] = {
+    0.0f, 0.0f,  // lower-left corner  
+    1.0f, 0.0f,  // lower-right corner
+    0.5f, 1.0f   // top-center corner
+};
 
 int main() {
 
@@ -79,6 +93,8 @@ int main() {
 
     return 0;
 }
+
+
 
 std::string load_file(const char* path) {
     std::ifstream file(path);
@@ -167,9 +183,18 @@ void initialize(void) {
 float timeValue = 0;
 float greenValue = 0;
 
+//TODO: Loading and creating textures
+
 void render_loop(void) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
+    //you need to do it for R as well for 3D
     //default using glPolygonMode(GL_FRONT_AND_BACK, ***GL_FILL OR GL_LINE).
     while(!glfwWindowShouldClose(window)) {
         
@@ -188,7 +213,7 @@ void render_loop(void) {
             
         
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         glfwSwapBuffers(window);
         glfwPollEvents();    
 
