@@ -30,7 +30,7 @@ void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader);
 std::string load_file(const char* path);
 
 
-float vertices[] = {
+std::vector<float> vertices = {
     // First triangle
      0.1f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
     -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
@@ -47,11 +47,21 @@ float vertices[] = {
 //     1, 2, 3    // second triangle
 // };  
 
-float texCoords[] = {
+std::vector<unsigned int> indices = {
+    0, 1, 2,
+    3, 4, 5
+};
+
+std::vector<float> texCoords = {
     0.0f, 0.0f,  // lower-left corner  
     1.0f, 0.0f,  // lower-right corner
     0.5f, 1.0f   // top-center corner
 };
+
+//make a function that populates an array of indices when given vertexes. 
+void populate(std::vector<float> vertices, std::vector<unsigned int> indices) {
+
+}
 
 int main() {
 
