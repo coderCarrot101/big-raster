@@ -59,8 +59,15 @@ std::vector<float> texCoords = {
 };
 
 //make a function that populates an array of indices when given vertexes. 
-void populate(std::vector<float> vertices, std::vector<unsigned int> indices) {
-
+void populate_indices(std::vector<float> vertices, std::vector<unsigned int> indices) {
+    float temp = 0.0;
+    for (std::size_t i = 0; i < vertices.size(); ++i) {
+        std::cout << "Index " << i << ": " << vertices[i] << "\n";
+        temp = vertices[i];
+        for (std::size_t j = 0; j < vertices.size(); ++j) {
+            std::cout << "Index " << i << ": " << vertices[i] << "\n";
+        }
+    }
 }
 
 int main() {
