@@ -28,7 +28,7 @@ void initialize(void);
 void render_loop(void);
 void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader);
 std::string load_file(const char* path);
-
+size_t triangleCount = 1;
 
 std::vector<float> vertices = {
     // First triangle
@@ -39,7 +39,11 @@ std::vector<float> vertices = {
     // Second triangle
      0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
      0.0f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
-     0.25f, 0.5f, 0.0f,  1.0f, 0.0f, 1.0f    // top
+     0.25f, 0.5f, 0.0f,  1.0f, 0.0f, 1.0f,    // top
+     // third triangle
+     0.1f, -0.1f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
+     0.0f, -0.2f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
+     0.1f, 0.15f, 0.0f,  1.0f, 0.0f, 1.0f    // top
 };
 
 // unsigned int indices[] = {  // note that we start from 0!
@@ -47,10 +51,7 @@ std::vector<float> vertices = {
 //     1, 2, 3    // second triangle
 // };  
 
-std::vector<unsigned int> indices = {
-    0, 1, 2,
-    3, 4, 5
-};
+std::vector<unsigned int> indices;
 
 std::vector<float> texCoords = {
     0.0f, 0.0f,  // lower-left corner  
@@ -58,27 +59,49 @@ std::vector<float> texCoords = {
     0.5f, 1.0f   // top-center corner
 };
 
-//make a function that populates an array of indices when given vertexes. 
-void populate_indices(std::vector<float> vertices, std::vector<unsigned int> indices) {
-    float temp = 0.0;
-    for (std::size_t i = 0; i < vertices.size(); ++i) {
-        std::cout << "Index " << i << ": " << vertices[i] << "\n";
-        temp = vertices[i];
-        for (std::size_t j = 0; j < vertices.size(); ++j) {
-            std::cout << "Index " << i << ": " << vertices[i] << "\n";
+//function that populates an array of indices when given vertexes. 
+void populate_indices(const std::vector<float>& vertices, std::vector<unsigned int>& indices) {
+    std::vector<float> uniqueVertices;
+
+    for (size_t i = 0; i < vertices.size(); i += 6) {
+        bool found = false;
+        unsigned int foundIndex = 0;
+        for (size_t j = 0; j < uniqueVertices.size(); j += 6) {
+            bool match = true;
+            for (int k = 0; k < 6; k++) {
+                if (vertices[i + k] != uniqueVertices[j + k]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                found = true;
+                foundIndex = j / 6;
+                break;
+            }
+        }
+        if (found) {
+            indices.push_back(foundIndex);
+        } else {
+            for (int k = 0; k < 6; k++) {
+                uniqueVertices.push_back(vertices[i + k]);
+            }
+
+            indices.push_back(uniqueVertices.size() / 6 - 1);
         }
     }
 }
 
 int main() {
-
+    populate_indices(vertices, indices);
+    triangleCount =  vertices.size() / 6 / 3;
     initialize();
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glGenBuffers(1, &VBO);  
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     //might wanna stwich static to dynamic later, if we change graphics at run time
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (vertices.size() * sizeof(float)), vertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
 
@@ -100,7 +123,7 @@ int main() {
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW); 
 
     compile_shaders(vertexShader, fragmentShader);
     glDeleteShader(vertexShader);
@@ -230,7 +253,7 @@ void render_loop(void) {
             
         
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
         glfwSwapBuffers(window);
         glfwPollEvents();    
 
