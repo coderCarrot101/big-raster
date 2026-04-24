@@ -1,9 +1,9 @@
 
-if (NOT EXISTS "C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/install_manifest.txt")
-    message(FATAL_ERROR "Cannot find install manifest: \"C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/install_manifest.txt\"")
+if (NOT EXISTS "C:/Users/elpi1/Desktop/big-raster/build/glfw-3.4/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: \"C:/Users/elpi1/Desktop/big-raster/build/glfw-3.4/install_manifest.txt\"")
 endif()
 
-file(READ "C:/Users/s654081/Desktop/big-raster/build/glfw-3.4/install_manifest.txt" files)
+file(READ "C:/Users/elpi1/Desktop/big-raster/build/glfw-3.4/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")
 
 foreach (file ${files})

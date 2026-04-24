@@ -22,6 +22,11 @@ const int HEIGHT = 600;
 GLFWwindow* window;
 unsigned int VBO;
 unsigned int VAO;
+
+//TODO hello triangle excecise 2
+unsigned int VBO_B;
+unsigned int VAO_B;
+
 unsigned int EBO;
 void window_resize_adjust_viewport(GLFWwindow* window, int width, int height);
 void initialize(void);
@@ -133,7 +138,6 @@ int main() {
 
     return 0;
 }
-
 
 
 std::string load_file(const char* path) {
