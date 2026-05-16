@@ -15,41 +15,39 @@
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
+unsigned int shaderProgramB;
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
+const int TRIANGLE_NUM = 2;
 
 GLFWwindow* window;
-unsigned int VBO;
-unsigned int VAO;
-
-//TODO hello triangle excecise 2
-unsigned int VBO_B;
-unsigned int VAO_B;
 
 unsigned int EBO;
 void window_resize_adjust_viewport(GLFWwindow* window, int width, int height);
 void initialize(void);
 void render_loop(void);
-void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader);
+void compile_shaders(unsigned int &vertexShader, std::string vertSource, unsigned int &fragmentShader, std::string fragSource, unsigned int &shaderProgram);
 std::string load_file(const char* path);
 size_t triangleCount = 1;
 
-std::vector<float> vertices = {
-    // First triangle
-     0.1f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-     0.0f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f,   // top 
 
+std::vector<std::vector<float>> triangle_vertices = {
+{
+    // First triangle
+    0.1f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+    0.0f,  0.9f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
+}, 
+{
     // Second triangle
-     0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
-     0.0f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
-     0.25f, 0.5f, 0.0f,  1.0f, 0.0f, 1.0f,    // top
-     // third triangle
-     0.1f, -0.1f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
-     0.0f, -0.2f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
-     0.1f, 0.15f, 0.0f,  1.0f, 0.0f, 1.0f    // top
+    0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   // bottom right
+    0.0f, -0.5f, 0.0f,  0.0f, 1.0f, 1.0f,   // bottom left
+    0.25f, 0.5f, 0.0f,  1.0f, 0.0f, 1.0f    // top
+}
 };
+
+unsigned int VBOs[2], VAOs[2];
 
 // unsigned int indices[] = {  // note that we start from 0!
 //     0, 1, 3,   // first triangle
@@ -98,18 +96,45 @@ void populate_indices(const std::vector<float>& vertices, std::vector<unsigned i
 }
 
 int main() {
-    populate_indices(vertices, indices);
-    triangleCount =  vertices.size() / 6 / 3;
+    std::string fragSource = load_file("src/shaders/fragment.glsl");
+    std::string fragSourceB = load_file("src/shaders/yellow.glsl");
+    std::string vertSource = load_file("src/shaders/vertex.glsl");
+    populate_indices(triangle_vertices[0], indices);
+    populate_indices(triangle_vertices[1], indices);
+    for (const auto& item : indices) {
+        std::cout << item << " ";
+    }
+    triangleCount = TRIANGLE_NUM;
     initialize();
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);  
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glGenVertexArrays(1, &VAOs[0]);
+    glBindVertexArray(VAOs[0]);
+    glGenBuffers(1, &VBOs[0]);  
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     //might wanna stwich static to dynamic later, if we change graphics at run time
-    glBufferData(GL_ARRAY_BUFFER, (vertices.size() * sizeof(float)), vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, (triangle_vertices[0].size() * sizeof(float)), triangle_vertices[0].data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
 
+
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+
+
+    //SECOND TRIANGLE 
+    glGenVertexArrays(1, &VAOs[1]);
+    glBindVertexArray(VAOs[1]);
+    glGenBuffers(1, &VBOs[1]);  
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    //might wanna stwich static to dynamic later, if we change graphics at run time
+    glBufferData(GL_ARRAY_BUFFER, (triangle_vertices[1].size() * sizeof(float)), triangle_vertices[1].data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);  
     //^ buffers | v vertex array objects
     /*
     // position attribute
@@ -128,11 +153,15 @@ int main() {
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW); 
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW);
 
-    compile_shaders(vertexShader, fragmentShader);
+    compile_shaders(vertexShader, vertSource, fragmentShader, fragSourceB, shaderProgramB);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    compile_shaders(vertexShader, vertSource, fragmentShader, fragSource, shaderProgram);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    
 
     render_loop();
 
@@ -154,11 +183,10 @@ std::string load_file(const char* path) {
 void window_resize_adjust_viewport(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, WIDTH, HEIGHT);
 }
-
+//expect
 //compile fragment and vertex shaders
-void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader) {
-    std::string fragSource = load_file("src/shaders/fragment.glsl");
-    std::string vertSource = load_file("src/shaders/vertex.glsl");
+void compile_shaders(unsigned int &vertexShader, std::string vertSource, unsigned int &fragmentShader, std::string fragSource, unsigned int &shaderProgram) {
+
 
     const char* fragPtr = fragSource.c_str();
     const char* vertPtr = vertSource.c_str();
@@ -194,8 +222,6 @@ void compile_shaders(unsigned int vertexShader, unsigned int fragmentShader) {
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-
-    glUseProgram(shaderProgram);
 }
 
 
@@ -254,12 +280,15 @@ void render_loop(void) {
         //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
         //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
-            
+        glUseProgram(shaderProgram);
         
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
+        glBindVertexArray(VAOs[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUseProgram(shaderProgramB);
+        glBindVertexArray(VAOs[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
         glfwSwapBuffers(window);
-        glfwPollEvents();    
+        glfwPollEvents();
 
         //draws from indices
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -269,6 +298,10 @@ void render_loop(void) {
         //antiquated, draws from vertices
         //glDrawArrays(GL_TRIANGLES, 0, 3);
     }
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
+    glDeleteProgram(shaderProgram);
+    glDeleteProgram(shaderProgramB);
     glfwTerminate();
 
 }
